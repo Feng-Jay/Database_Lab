@@ -3,13 +3,14 @@
 
 CREATE DATABASE employees;
 
+\c employees;-- PostgreSQL
 
 -- 按照实验报告要求编写SQL语句
-
+DROP TABLE employees, titles, salaries, departments, dept_emp, dept_manager;
 -- 3
 -- 用SQL创建关系表
 CREATE TABLE employees (
-	emp_no INT,
+	emp_no INT CONSTRAINT pk_employees PRIMARY KEY,
 	birth_date DATE,
 	first_name CHAR(30),
 	last_name CHAR(30),
@@ -18,34 +19,34 @@ CREATE TABLE employees (
 );
 
 CREATE TABLE titles(
-	emp_no INT,
+	emp_no INT CONSTRAINT fk_titles_employees REFERENCES employees(emp_no),
 	title CHAR(30),
 	from_date DATE,
 	to_date DATE
 );
 
 CREATE TABLE salaries(
-	emp_no INT,
+	emp_no INT CONSTRAINT fk_salaries_employees REFERENCES employees(emp_no),
 	salary INT,
 	from_date DATE,
 	to_date DATE
 );
 
 CREATE TABLE departments(
-	dept_no CHAR(10),
+	dept_no CHAR(10) CONSTRAINT pk_departments PRIMARY KEY,
 	dept_name CHAR(30)
 );
 
 CREATE TABLE dept_emp(
-	emp_no INT,
-	dept_no CHAR(10),
+	emp_no INT CONSTRAINT fk_dept_emp_employees REFERENCES employees(emp_no),
+	dept_no CHAR(10) CONSTRAINT fk_dept_emp_departments REFERENCES departments(dept_no),
 	from_date DATE,
 	to_date DATE
 );
 
 CREATE TABLE dept_manager(
-	dept_no CHAR(10),
-	emp_no INT,
+	dept_no CHAR(10) CONSTRAINT fk_dept_manager_departments REFERENCES departments(dept_no),
+	emp_no INT CONSTRAINT fk_dept_manager_employees REFERENCES employees(emp_no),
 	from_date DATE,
 	to_date DATE
 );
@@ -101,7 +102,7 @@ WHERE first_name LIKE'Peter%' OR last_name LIKE 'Peter%';
 
 -- 5.5
 SELECT max(salary) as max_salary
-FROM salaries
+FROM salaries;
 
 -- 5.6
 SELECT dept_no, COUNT(dept_no) AS dept_emp_count 
@@ -114,10 +115,10 @@ FROM dept_emp, employees
 WHERE employees.emp_no = dept_emp.emp_no AND employees.first_name='Peternela' AND employees.last_name='Anick';
 
 -- 5.8
-SELECT Aemployees.emp_no, Bemployees.emp_no, Aemployees.first_name, Aemployees.last_name
-FROM employees AS Aemployees, employees AS Bemployees
-WHERE Aemployees.first_name = Bemployees.first_name AND Aemployees.last_name = Bemployees.last_name 
-AND Aemployees.emp_no != Bemployees.emp_no;
+SELECT Aemployees.emp_no, employees.emp_no, Aemployees.first_name, Aemployees.last_name
+FROM employees AS Aemployees, employees
+WHERE Aemployees.first_name = employees.first_name AND Aemployees.last_name = employees.last_name AND Aemployees.emp_no != employees.emp_no
+LIMIT 10;
 
 -- 5.9
 (SELECT employees.emp_no
@@ -144,7 +145,8 @@ WHERE dept_no=(
 -- 5.11
 SELECT departments.dept_name
 FROM 
-(employees JOIN dept_emp
+(employees 
+JOIN dept_emp
 ON employees.emp_no=dept_emp.emp_no)
 JOIN departments
 ON dept_emp.dept_no = departments.dept_no
