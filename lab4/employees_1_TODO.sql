@@ -116,12 +116,16 @@ CREATE TRIGGER dept_tri
 AFTER UPDATE ON departments
 FOR EACH ROW EXECUTE PROCEDURE emp_stamp();
 
+DROP TRIGGER dept_tri ON departments;
+
 --test 5.19
 UPDATE departments
 SET dept_name = CONCAT(dept_name, ' Dept')
 WHERE dept_no = 'd005';
 
+
 SELECT * FROM departments_copy_log;
+DROP TABLE departments_copy_log;
 
 -- 5.20
 create view finance_employees_view as select emp_no,first_name,last_name,birth_date,hire_date from employees;
@@ -129,19 +133,19 @@ create view finance_employees_view as select emp_no,first_name,last_name,birth_d
 SELECT * FROM finance_employees_view LIMIT 10;
 
 -- 5.21
-EXPLAIN SELECT * FROM employees WHERE first_name='Peternela' AND last_name='Anick';
+EXPLAIN ANALYSE SELECT * FROM employees WHERE first_name='Peternela' AND last_name='Anick';
 
 create index employees_first_name_index on employees(first_name);
 create index employees_last_name_index on employees(last_name);
 
-EXPLAIN SELECT * FROM employees WHERE first_name='Peternela' AND last_name='Anick';
+EXPLAIN ANALYSE SELECT * FROM employees WHERE first_name='Peternela' AND last_name='Anick';
 
 drop index employees_first_name_index;
 drop index employees_last_name_index;
 
 --5.22
 --271ms 50ms 53ms 3s768ms 55ms 43ms 40ms
-SELECT d.dept_no, d.dept_name, e.emp_no, e.first_name, e.last_name, s.salary
+EXPLAIN ANALYSE SELECT d.dept_no, d.dept_name, e.emp_no, e.first_name, e.last_name, s.salary
 FROM departments AS d
 INNER JOIN dept_emp AS de ON d.dept_no=de.dept_no
 INNER JOIN employees AS e ON de.emp_no=e.emp_no
@@ -150,6 +154,9 @@ WHERE e.first_name='Peternela' AND e.last_name='Anick';
 
 create index employees_first_name_index on employees(first_name);
 create index employees_last_name_index on employees(last_name);
+
+drop index employees_first_name_index;
+drop index employees_last_name_index;
 
 -- drop foreign keys
 ALTER TABLE salaries DROP CONSTRAINT fk_salaries_employees;
